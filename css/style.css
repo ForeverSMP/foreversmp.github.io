@@ -1,0 +1,28 @@
+.VideoCard {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.VideoThumbnail img {
+    width: 320px;
+    height: 180px;
+    object-fit: cover;
+}
+
+.VideoInformation {
+    display: flex;
+    flex-direction: column;
+}
+
+.VideoTitle h2 {
+    margin-top: 0;
+}
+
+.ChannelName {
+    margin-bottom: 5px;
+}
+
+.PublishedDate {
+    margin-top: 0;
+}
