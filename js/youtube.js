@@ -13,7 +13,7 @@ const channelId = "UCfSOL-2WVjtCo2BSlemAQWg";
 const videosToFetch = 50;
 
 // How many qualifying videos we actually want to display.
-const videosToShow = 10;
+const videosToShow = 30;
 
 // Videos this length or shorter are treated as Shorts.
 const shortsMaxDuration = 180;
@@ -71,129 +71,297 @@ function durationToSeconds(duration) {
 }
 
 // ====================================================================
-// LOAD VIDEOS
+// GET CHANNEL'S UPLOADS PLAYLIST
 // ====================================================================
 
-async function loadVideos() {
+async function getUploadsPlaylist(channelId) {
 
-    // STEP 1:
-    // Ask YouTube for information about the channel.
-    const channelResponse = await fetch(
+    const response = await fetch(
         `https://www.googleapis.com/youtube/v3/channels` +
         `?part=contentDetails` +
         `&id=${channelId}` +
         `&key=${apiKey}`
     );
 
-    const channelData = await channelResponse.json();
+    const data = await response.json();
 
-    // Find the channel's automatically generated uploads playlist.
-    const uploadsPlaylist =
-        channelData.items[0]
-            .contentDetails
-            .relatedPlaylists
-            .uploads;
+    return data.items[0]
+        .contentDetails
+        .relatedPlaylists
+        .uploads;
+}
 
+// ====================================================================
+// GET ONE PAGE OF UPLOADS
+// ====================================================================
 
-    // STEP 2:
-    // Ask YouTube for the latest 50 items in that playlist.
-    const videosResponse = await fetch(
+async function getPlaylistPage(playlistId, pageToken = "") {
+
+    let url =
         `https://www.googleapis.com/youtube/v3/playlistItems` +
         `?part=snippet` +
-        `&playlistId=${uploadsPlaylist}` +
-        `&maxResults=${videosToFetch}` +
-        `&key=${apiKey}`
-    );
+        `&playlistId=${playlistId}` +
+        `&maxResults=50` +
+        `&key=${apiKey}`;
 
-    const videosData = await videosResponse.json();
 
-    // Step 3:
-    // Extract all of the video IDs.
-    const videoIds = videosData.items.map(video => video.snippet.resourceId.videoId);
+    // Only add pageToken if one actually exists.
 
-    // Step 4:
-    // Ask YouTube for the content details of those videos.
-    const detailsResponse = await fetch(
+    if (pageToken) {
+        url += `&pageToken=${pageToken}`;
+    }
+
+
+    const response = await fetch(url);
+
+    return await response.json();
+}
+
+// ====================================================================
+// GET VIDEO DETAILS
+// ====================================================================
+
+async function getVideoDetails(videoIds) {
+
+    const response = await fetch(
         `https://www.googleapis.com/youtube/v3/videos` +
         `?part=contentDetails` +
         `&id=${videoIds.join(",")}` +
         `&key=${apiKey}`
     );
 
-    const detailsData = await detailsResponse.json();
+    return await response.json();
+}
 
-    // Step 5:
-    // Find videos that are 3 minutes or shorter.
-    const shortVideoIds = new Set();
+// ====================================================================
+// CREATE VIDEO CARD
+// ====================================================================
 
-    detailsData.items.forEach(video => {
-        const duration = durationToSeconds(
-            video.contentDetails.duration
+function createVideoCard(video) {
+
+    const title =
+        video.snippet.title;
+
+    const channelName =
+        video.snippet.videoOwnerChannelTitle;
+
+    const publishedAt =
+        formatPublishedDate(
+            video.snippet.publishedAt
         );
 
-        if (duration <= shortsMaxDuration) {
-            shortVideoIds.add(video.id)
-        }
-    });
+    const thumbnail =
+        video.snippet.thumbnails.high.url;
 
-    // Step 6:
-    // Filter shorts out of the original uploads array
-    const filteredVideos = videosData.items.filter(video => {
-        const videoId = video.snippet.resourceId.videoId;
-        return !shortVideoIds.has(videoId);
-    });
+    const videoId =
+        video.snippet.resourceId.videoId;
 
-    // Step 7:
-    // Take only the number of videos we actually want.
-    const videosToDisplay = filteredVideos.slice(0, videosToShow);
 
-    // Step 8:
-    // Find the ForeverContainer on the webpage.
-    const container = document.getElementById("ForeverContainer");
-
-    // Step 9:
-    // Generate a card for each qualifying video.
-videosToDisplay.forEach(video => {
-
-    const title = video.snippet.title;
-    const publishedAt = formatPublishedDate(video.snippet.publishedAt)
-    const thumbnail = video.snippet.thumbnails.high.url;
-    const videoId = video.snippet.resourceId.videoId;
-    const channelName = video.snippet.videoOwnerChannelTitle
-
-    // Create card container.
-    const videoCard = document.createElement("div");
+    const videoCard =
+        document.createElement("div");
 
     videoCard.className = "VideoCard";
 
-    // Generate card contents.
+
     videoCard.innerHTML = `
-    <a class="VideoThumbnail" 
-       href="https://www.youtube.com/watch?v=${videoId}" 
-       target="_blank">
-        <img src="${thumbnail}" alt="${title}">
-    </a>
 
-    <div class="VideoInformation">
-
-        <a class="VideoTitle"
+        <a class="VideoThumbnail"
            href="https://www.youtube.com/watch?v=${videoId}"
            target="_blank">
-            <h2>${title}</h2>
+
+            <img src="${thumbnail}" alt="${title}">
+
         </a>
 
-        <p class="ChannelName">${channelName}</p>
-        <p class="PublishedDate">${publishedAt}</p>
 
-    </div>
-`;
+        <div class="VideoInformation">
 
-    container.appendChild(videoCard);
-});
+            <a class="VideoTitle"
+               href="https://www.youtube.com/watch?v=${videoId}"
+               target="_blank">
+
+                <h2>${title}</h2>
+
+            </a>
+
+            <p class="ChannelName">
+                ${channelName}
+            </p>
+
+            <p class="PublishedDate">
+                ${publishedAt}
+            </p>
+
+        </div>
+    `;
+
+
+    return videoCard;
+}
+
+// ====================================================================
+// LOAD VIDEOS
+// ====================================================================
+
+async function loadVideos() {
+
+    // Get the uploads playlist.
+
+    const uploadsPlaylist =
+        await getUploadsPlaylist(channelId);
+
+
+    // This will contain our qualifying long-form videos.
+
+    const qualifyingVideos = [];
+
+
+    // The first request doesn't have a page token.
+
+    let nextPageToken = "";
+
+
+    // Keep requesting pages until:
+    //
+    // 1. We have enough qualifying videos
+    //
+    // OR
+    //
+    // 2. YouTube has no more pages.
+
+    do {
+
+        // ----------------------------------------------------
+        // Get the next page of uploads.
+        // ----------------------------------------------------
+
+        const playlistData =
+            await getPlaylistPage(
+                uploadsPlaylist,
+                nextPageToken
+            );
+
+
+        // ----------------------------------------------------
+        // Extract IDs from this page.
+        // ----------------------------------------------------
+
+        const videoIds =
+            playlistData.items.map(video =>
+                video.snippet.resourceId.videoId
+            );
+
+
+        // ----------------------------------------------------
+        // Retrieve durations.
+        // ----------------------------------------------------
+
+        const detailsData =
+            await getVideoDetails(videoIds);
+
+
+        // ----------------------------------------------------
+        // Build a collection of videos that should be excluded.
+        // ----------------------------------------------------
+
+        const shortVideoIds = new Set();
+
+
+        detailsData.items.forEach(video => {
+
+            const duration =
+                durationToSeconds(
+                    video.contentDetails.duration
+                );
+
+
+            if (duration <= shortsMaxDuration) {
+
+                shortVideoIds.add(video.id);
+
+            }
+
+        });
+
+
+        // ----------------------------------------------------
+        // Keep only long-form videos from this page.
+        // ----------------------------------------------------
+
+        const longFormVideos =
+            playlistData.items.filter(video => {
+
+                const videoId =
+                    video.snippet.resourceId.videoId;
+
+                return !shortVideoIds.has(videoId);
+
+            });
+
+
+        // ----------------------------------------------------
+        // Add those videos to our main collection.
+        // ----------------------------------------------------
+
+        qualifyingVideos.push(
+            ...longFormVideos
+        );
+
+
+        // ----------------------------------------------------
+        // Store the token for the NEXT page.
+        //
+        // If there isn't another page, use an empty string.
+        // ----------------------------------------------------
+
+        nextPageToken =
+            playlistData.nextPageToken || "";
+
+
+        // Temporary debugging information.
+
+        console.log(
+            "Long-form videos collected:",
+            qualifyingVideos.length
+        );
+
+
+    } while (
+        qualifyingVideos.length < videosToShow &&
+        nextPageToken
+    );
+
+
+    // ========================================================
+    // We now have enough videos (assuming the channel has
+    // enough qualifying uploads).
+    // ========================================================
+
+    const videosToDisplay =
+        qualifyingVideos.slice(0, videosToShow);
+
+
+    // Find our HTML container.
+
+    const container =
+        document.getElementById("ForeverContainer");
+
+
+    // Generate the cards.
+
+    videosToDisplay.forEach(video => {
+
+        const videoCard =
+            createVideoCard(video);
+
+        container.appendChild(videoCard);
+
+    });
 
 }
 
 // ====================================================================
 // START
 // ====================================================================
+
 loadVideos();
