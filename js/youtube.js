@@ -3,7 +3,16 @@
 // ====================================================================
 
 const apiKey = "HIDDEN";
-const channelId = "UCfSOL-2WVjtCo2BSlemAQWg";
+const members = [
+    {
+        name: "Deathdealer",
+        channelId: "UCfSOL-2WVjtCo2BSlemAQWg"
+    },
+    {
+        name: "JoshyPowerz",
+        channelId: "UCvUbQLuTDCubqJSmZPIGRyw"
+    }
+];
 
 // ====================================================================
 // SETTINGS
@@ -12,8 +21,10 @@ const channelId = "UCfSOL-2WVjtCo2BSlemAQWg";
 // How many uploads to initially retrieve from YouTube.
 const videosToFetch = 50;
 
-// How many qualifying videos we actually want to display.
-const videosToShow = 30;
+// Determines how many qualifying videos we retrieve from each creator.
+const videosPerChannel = 10;
+// Determines how many videos appear in the combined homepage feed.
+const videosToShow = 20;
 
 // Videos this length or shorter are treated as Shorts.
 const shortsMaxDuration = 180;
@@ -63,11 +74,17 @@ function durationToSeconds(duration) {
         /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/
     );
 
+    if (!match) {
+        console.warn("Unable to parse video duration: ", duration);
+        return null;
+    }
+
+    const days = parseInt(match[1] || 0);
     const hours = parseInt(match[1] || 0);
     const minutes = parseInt(match[2] || 0);
     const seconds = parseInt(match[3] || 0);
 
-    return (hours * 3600) + (minutes * 60) + seconds;
+    return (days * 86400) + (hours * 3600) + (minutes * 60) + seconds;
 }
 
 // ====================================================================
@@ -200,10 +217,10 @@ function createVideoCard(video) {
 }
 
 // ====================================================================
-// LOAD VIDEOS
+// GET CHANNEL VIDEOS
 // ====================================================================
 
-async function loadVideos() {
+async function getChannelVideos(channelId) {
 
     // Get the uploads playlist.
 
@@ -275,7 +292,7 @@ async function loadVideos() {
                 );
 
 
-            if (duration <= shortsMaxDuration) {
+            if (duration !== null && duration > 0 && duration <= shortsMaxDuration) {
 
                 shortVideoIds.add(video.id);
 
@@ -317,37 +334,77 @@ async function loadVideos() {
         nextPageToken =
             playlistData.nextPageToken || "";
 
-
-        // Temporary debugging information.
-
-        console.log(
-            "Long-form videos collected:",
-            qualifyingVideos.length
-        );
-
-
     } while (
-        qualifyingVideos.length < videosToShow &&
+        qualifyingVideos.length < videosPerChannel &&
         nextPageToken
     );
 
+    // Return the videos instead of displaying them
 
-    // ========================================================
-    // We now have enough videos (assuming the channel has
-    // enough qualifying uploads).
-    // ========================================================
+    return qualifyingVideos.slice(0, videosPerChannel);
+}
+
+// ====================================================================
+// LOAD VIDEOS
+// ====================================================================
+
+async function loadVideos() {
+
+    const allVideos = [];
+
+
+    // Get videos from every ForeverSMP member.
+
+    for (const member of members) {
+
+        const memberVideos =
+            await getChannelVideos(
+                member.channelId
+            );
+
+        allVideos.push(
+            ...memberVideos
+        );
+
+    }
+
+
+    console.log(
+        "Combined videos:",
+        allVideos.length
+    );
+
+
+    // Sort newest → oldest.
+
+    allVideos.sort((a, b) => {
+
+        const dateA =
+            new Date(a.snippet.publishedAt);
+
+        const dateB =
+            new Date(b.snippet.publishedAt);
+
+        return dateB - dateA;
+
+    });
+
+
+    // Take only the newest videos.
 
     const videosToDisplay =
-        qualifyingVideos.slice(0, videosToShow);
+        allVideos.slice(0, videosToShow);
 
 
-    // Find our HTML container.
+    // Find the webpage container.
 
     const container =
-        document.getElementById("ForeverContainer");
+        document.getElementById(
+            "ForeverContainer"
+        );
 
 
-    // Generate the cards.
+    // Render them.
 
     videosToDisplay.forEach(video => {
 
