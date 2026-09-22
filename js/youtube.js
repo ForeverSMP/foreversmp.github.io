@@ -5,13 +5,78 @@
 const apiKey = "HIDDEN";
 const members = [
     {
+        name:"A13XplaysMC",
+        channelId:"UC8vrrLcaOmp20qfjt4vV44A"
+    },
+    {
+        name:"Boss",
+        channelId:"UCBC9dlYb6jcQymCA_0xNRiQ"
+    },
+    {
+        name:"Bleaker",
+        channelId:"UCPkLG5BwZZDM1iWnYwJtOIw"
+    },
+    {
+        name:"CoolingMystery",
+        channelId:"UCbOC_8viIkOd8shtLPpzvDA"
+    },
+    {
         name: "Deathdealer",
         channelId: "UCfSOL-2WVjtCo2BSlemAQWg"
     },
     {
+        name: "Geeksqueek",
+        channelId: "UCyztb52Bcw_GeKGEq5vSkuQ"
+    },
+    {
         name: "JoshyPowerz",
         channelId: "UCvUbQLuTDCubqJSmZPIGRyw"
+    },
+    {
+        name: "L1me",
+        channelId: "UCu8veMH8PQQD6CXKNE1hYCg"
+    },
+    {
+        name: "The Mechanic",
+        channelId: "UCzDbQvTvYOiccGfGkaI9x5w"
+    },
+    {
+        name: "Mega_Techa",
+        channelId: "UCizMLDvHiDXO3GmBY-hkQyQ"
+    },
+    {
+        name: "Mineless",
+        channelId: "UCEB6J6PvAAaQElxfdKgP1bQ"
+    },
+    {
+        name: "RickyCFT",
+        channelId: "UCuzlyu89um5S9B3QtBT_eLg"
+    },
+    {
+        name: "Time Architect",
+        channelId: "UCGnMh8VTiGD0T-1hlhHImeg"
+    },
+    {
+        name: "TheRaidingViking",
+        channelId: "UCvhtHMbXv9S0cvdyve7NnKA"
+    },
+    {
+        name: "SirRepooc",
+        channelId: "UCA2CF5qFK3tSg6uIGvKgQDg"
+    },
+    {
+        name: "Sally-Jane",
+        channelId: "UC1OXRLz6oZjbzXZMMCryn3g"
+    },
+    {
+        name: "XselStyles",
+        channelId: "UCMBpmWPKaRGgvu7cOKk-G7A"
+    },
+    {
+        name: "Zeplington",
+        channelId: "UC8HVP6f5cilnwDXt22IcD8Q"
     }
+    
 ];
 
 // ====================================================================
@@ -24,7 +89,7 @@ const videosToFetch = 50;
 // Determines how many qualifying videos we retrieve from each creator.
 const videosPerChannel = 10;
 // Determines how many videos appear in the combined homepage feed.
-const videosToShow = 20;
+const videosToShow = 25;
 
 // Videos this length or shorter are treated as Shorts.
 const shortsMaxDuration = 180;
@@ -71,20 +136,29 @@ function formatPublishedDate(publishedAt) {
 function durationToSeconds(duration) {
 
     const match = duration.match(
-        /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/
+        /P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?/
     );
 
     if (!match) {
-        console.warn("Unable to parse video duration: ", duration);
+        console.warn(
+            "Unable to parse video duration:",
+            duration
+        );
+
         return null;
     }
 
     const days = parseInt(match[1] || 0);
-    const hours = parseInt(match[1] || 0);
-    const minutes = parseInt(match[2] || 0);
-    const seconds = parseInt(match[3] || 0);
+    const hours = parseInt(match[2] || 0);
+    const minutes = parseInt(match[3] || 0);
+    const seconds = parseInt(match[4] || 0);
 
-    return (days * 86400) + (hours * 3600) + (minutes * 60) + seconds;
+    return (
+        (days * 86400) +
+        (hours * 3600) +
+        (minutes * 60) +
+        seconds
+    );
 }
 
 // ====================================================================
@@ -118,7 +192,7 @@ async function getPlaylistPage(playlistId, pageToken = "") {
         `https://www.googleapis.com/youtube/v3/playlistItems` +
         `?part=snippet` +
         `&playlistId=${playlistId}` +
-        `&maxResults=50` +
+        `&maxResults=${videosToFetch}` +
         `&key=${apiKey}`;
 
 
@@ -350,32 +424,21 @@ async function getChannelVideos(channelId) {
 
 async function loadVideos() {
 
-    const allVideos = [];
+    // Start loading every member at the same time.
+    const memberRequests = members.map(member => getChannelVideos(member.channelId));
 
-
-    // Get videos from every ForeverSMP member.
-
-    for (const member of members) {
-
-        const memberVideos =
-            await getChannelVideos(
-                member.channelId
-            );
-
-        allVideos.push(
-            ...memberVideos
-        );
-
-    }
-
+    // Wait until all members have finished loading.
+    const memberVideoArrays = await Promise.all(memberRequests);
+    
+    // Combine the arrays into one large array
+    const allVideos = memberVideoArrays.flat();
 
     console.log(
         "Combined videos:",
         allVideos.length
     );
 
-
-    // Sort newest → oldest.
+    // Sort newest to oldest.
 
     allVideos.sort((a, b) => {
 
