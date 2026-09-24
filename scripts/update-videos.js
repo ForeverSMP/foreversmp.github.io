@@ -477,23 +477,6 @@ async function updateVideos() {
 
 
     // ------------------------------------------------------------
-    // Build the final JSON structure.
-    // ------------------------------------------------------------
-
-    const output = {
-
-        generatedAt:
-            new Date().toISOString(),
-
-        videoCount:
-            videos.length,
-
-        videos:
-            videos
-    };
-
-
-    // ------------------------------------------------------------
     // Load Node's filesystem module.
     // ------------------------------------------------------------
 
@@ -514,11 +497,112 @@ async function updateVideos() {
 
 
     // ------------------------------------------------------------
-    // Generate data/videos.json.
+    // Location of our existing video database.
+    // ------------------------------------------------------------
+
+    const filePath =
+        "data/videos.json";
+
+
+    // ------------------------------------------------------------
+    // Read the existing video database if one exists.
+    //
+    // This allows us to determine whether the actual video data
+    // has changed since the previous update.
+    // ------------------------------------------------------------
+
+    let existingData =
+        null;
+
+
+    if (fs.existsSync(filePath)) {
+
+        try {
+
+            existingData =
+                JSON.parse(
+                    fs.readFileSync(
+                        filePath,
+                        "utf8"
+                    )
+                );
+
+        }
+        catch (error) {
+
+            console.warn(
+                "Existing videos.json could not be read."
+            );
+
+            console.warn(
+                "A new file will be generated."
+            );
+        }
+    }
+
+
+    // ------------------------------------------------------------
+    // Compare the old and new video arrays.
+    //
+    // generatedAt is deliberately excluded from this comparison.
+    // Otherwise every run would appear to contain a change.
+    // ------------------------------------------------------------
+
+    const existingVideos =
+        existingData?.videos || [];
+
+
+    const videosHaveChanged =
+        JSON.stringify(existingVideos) !==
+        JSON.stringify(videos);
+
+
+    // ------------------------------------------------------------
+    // Nothing changed.
+    //
+    // Leave videos.json untouched so Git has nothing to commit.
+    // ------------------------------------------------------------
+
+    if (!videosHaveChanged) {
+
+        console.log(
+            "No changes detected in video data."
+        );
+
+        console.log(
+            "data/videos.json has not been modified."
+        );
+
+        return;
+    }
+
+
+    // ------------------------------------------------------------
+    // Something has changed.
+    //
+    // Build a new JSON structure. generatedAt therefore represents
+    // when the stored video data was last changed.
+    // ------------------------------------------------------------
+
+    const output = {
+
+        generatedAt:
+            new Date().toISOString(),
+
+        videoCount:
+            videos.length,
+
+        videos:
+            videos
+    };
+
+
+    // ------------------------------------------------------------
+    // Generate the updated data/videos.json.
     // ------------------------------------------------------------
 
     fs.writeFileSync(
-        "data/videos.json",
+        filePath,
         JSON.stringify(
             output,
             null,
@@ -528,7 +612,7 @@ async function updateVideos() {
 
 
     console.log(
-        `Generated data/videos.json with ${videos.length} videos.`
+        `Updated data/videos.json with ${videos.length} videos.`
     );
 }
 
