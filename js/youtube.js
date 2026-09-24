@@ -127,42 +127,6 @@ function createVideoCard(video) {
 async function loadVideos() {
 
     // ------------------------------------------------------------
-    // Load our pre-generated video data.
-    // ------------------------------------------------------------
-
-    const response =
-        await fetch("data/videos.json");
-
-
-    const data =
-        await response.json();
-
-
-    console.log(
-        "Video data generated:",
-        data.generatedAt
-    );
-
-    console.log(
-        "Cached videos:",
-        data.videoCount
-    );
-
-
-    // ------------------------------------------------------------
-    // The JSON file is already sorted newest → oldest.
-    //
-    // We only need the first videosToShow entries for the homepage.
-    // ------------------------------------------------------------
-
-    const videosToDisplay =
-        data.videos.slice(
-            0,
-            videosToShow
-        );
-
-
-    // ------------------------------------------------------------
     // Find the video container.
     // ------------------------------------------------------------
 
@@ -170,23 +134,65 @@ async function loadVideos() {
         document.getElementById(
             "ForeverContainer"
         );
+        
+    try {
+        // ------------------------------------------------------------
+        // Load our pre-generated video data.
+        // ------------------------------------------------------------
+
+        const response =
+            await fetch("data/videos.json");
+
+        if (!response.ok) {
+            throw new Error(`Failed to load video data: ${response.status}`);
+        }
 
 
-    // ------------------------------------------------------------
-    // Create the video cards.
-    // ------------------------------------------------------------
+        const data =
+            await response.json();
 
-    videosToDisplay.forEach(video => {
+        // ------------------------------------------------------------
+        // The JSON file is already sorted newest → oldest.
+        //
+        // We only need the first videosToShow entries for the homepage.
+        // ------------------------------------------------------------
 
-        const videoCard =
-            createVideoCard(video);
+        const videosToDisplay =
+            data.videos.slice(
+                0,
+                videosToShow
+            );
 
-        container.appendChild(
-            videoCard
+        // ------------------------------------------------------------
+        // Create the video cards.
+        // ------------------------------------------------------------
+
+        videosToDisplay.forEach(video => {
+
+            const videoCard =
+                createVideoCard(video);
+
+            container.appendChild(
+                videoCard
+            );
+        });
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to load video feed:",
+            error
         );
-    });
-}
 
+        container.innerHTML = `
+            <p class="VideoFeedError">
+                The video feed is temporarily unavailable.
+                Please try again later.
+            </p>
+        `;
+
+    }
+}
 
 // ====================================================================
 // START
