@@ -102,15 +102,11 @@ function createVideoCard(video) {
 
             </a>
 
-
-            <p class="ChannelName">
-                ${channelName}
-            </p>
-
-
-            <p class="PublishedDate">
-                ${publishedAt}
-            </p>
+            <div class="VideoMetadata">
+                <span class="ChannelName">${channelName}</span> 
+                <span class="MetadataSeparator"> </span>
+                <span class="PublishedDate">${publishedAt}</span>
+            </div>
 
         </div>
     `;

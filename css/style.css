@@ -1,10 +1,17 @@
 .VideoCard {
     display: flex;
     gap: 20px;
-    margin-bottom: 20px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+.VideoThumbnail {
+    flex-shrink: 0;
 }
 
 .VideoThumbnail img {
+    display: block;
     width: 320px;
     height: 180px;
     object-fit: cover;
@@ -17,6 +24,25 @@
 
 .VideoTitle h2 {
     margin-top: 0;
+    color: #333;
+    font-size: 18px;
+    line-height: 1.3;
+}
+
+.VideoMetadata {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    color: #666;
+    font-size: 13px;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 .ChannelName {
@@ -25,4 +51,116 @@
 
 .PublishedDate {
     margin-top: 0;
+}
+
+#ContentContainer {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+#MemberContainer, #ForeverContainer, #FooterContainer {
+    background-color: #ffff;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+
+#MemberContainer h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.MemberList {
+    display: flex;
+    flex-direction: column;
+}
+
+.MemberButton {
+    width: 100%;
+    padding: 6px 10px;
+
+    
+
+    text-align: left;
+    font-size: 14px;
+
+    background-color: white;
+    border: 1px solid #e7e7e7;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+}
+
+.MemberButton:hover {
+    background-color: #e7e7e7;
+    text-decoration: underline;
+}
+
+.MemberButton:not(:last-child) {
+    border-right: none; /* Prevent double borders */
+}
+
+.btn-group {
+    display: flex;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.btn-group .button {
+    flex: 1;
+}
+
+.button {
+    background-color: white;
+    border: 1px solid green;
+    color: black;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-group .button:hover {
+    background-color: #e7e7e7;
+}
+
+.btn-group .button:not(:last-child) {
+    border-right: none; /* Prevent double borders */
+}
+
+body {
+    font-family: "Helvetica Neue";
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #fff;
+}
+
+.container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+    max-width: 1000px;
+}
+
+img {
+    vertical-align: middle;
+    border: 0;
+    overflow-clip-margin: content-box;
+    overflow: auto;
+}
+
+#backgroundImg {
+    position: fixed;
+    top: -1rem;
+    left: -1rem;
+    width: 105%;
+    height: 105%;
+    z-index: -1;
+    filter: blur(5px);
 }

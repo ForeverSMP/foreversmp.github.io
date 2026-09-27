@@ -1,30 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="row">
-        <div id="ForeverContainer" class="MainDivs">
-            <!--Videos contained in here - INSERT YT API?-->
-        </div>
-    </div>
-    <div class="row">
-        <div id="FooterContainer" class="MainDivs">
-            <center>
-                <span>
-                    <!-- Place privacy policy or other readables here-->
-                     <a href="/privacy">Privacy Policy</a>
-                </span>
-                <hr>
-                <span>
-                    Website written and maintained by 
-                    <a href="/Deathdealer">Deathdealer</a>
-                </span>
-            </center>
-        </div>
+    <img class="mobileHide" id="backgroundImg" src="content/img/server-backgrounds/spawn.png">
+    <div class="container">
+        <header>
+            <div class="row">
+                <img src="content/img/banner.png" alt="Forever SMP" class="center-block img-responsive" width="1000" height="120">
+            </div>
+        </header>
+        <div class="row" style="padding: 10px;">
+            <main id="ContentContainer">
+                <!-- Member navigation -->
+                 <aside id="MemberContainer" class="MainDivs">
+                    <h2>Members</h2>
 
+                    <div class="MemberList">
+
+                        <button class="MemberButton">All Members</button>
+                        <button class="MemberButton"><img src="content/img/logos/alex.jpg" width="25" height="25">A13XplaysMC</button>
+                        <button class="MemberButton"><img src="content/img/logos/boss.jpg" width="25" height="25">Boss</button>
+                        <button class="MemberButton"><img src="content/img/logos/bleaker.jpg" width="25" height="25">Bleaker</button>
+                        <button class="MemberButton"><img src="content/img/logos/mystery.jpg" width="25" height="25">CoolingMystery</button>
+                        <button class="MemberButton"><img src="content/img/logos/death.jpg" width="25" height="25">Deathdealer</button>
+                        <button class="MemberButton"><img src="content/img/logos/geek.jpg" width="25" height="25">Geeksqueek</button>
+                        <button class="MemberButton"><img src="content/img/logos/joshy.jpg" width="25" height="25">JoshyPowerz</button>
+                        <button class="MemberButton"><img src="content/img/logos/lime.jpg" width="25" height="25">L1me</button>
+                        <button class="MemberButton"><img src="content/img/logos/mechanic.jpg" width="25" height="25">The Mechanic</button>
+                        <button class="MemberButton"><img src="content/img/logos/mega.jpg" width="25" height="25">Mega_Techa</button>
+                        <button class="MemberButton"><img src="content/img/logos/mineless.jpg" width="25" height="25">Mineless</button>
+                        <button class="MemberButton"><img src="content/img/logos/ricky.jpg" width="25" height="25">RickyCFT</button>
+                        <button class="MemberButton"><img src="content/img/logos/time.jpg" width="25" height="25">Time Architect</button>
+                        <button class="MemberButton"><img src="content/img/logos/viking.jpg" width="25" height="25">TheRaidingViking</button>
+                        <button class="MemberButton"><img src="content/img/logos/cooper.jpg" width="25" height="25">SirRepooc</button>
+                        <button class="MemberButton"><img src="content/img/logos/sally.jpg" width="25" height="25">Sally-Jane</button>
+                        <button class="MemberButton"><img src="content/img/logos/xsel.jpg" width="25" height="25">XselStyles</button>
+                        <button class="MemberButton"><img src="content/img/logos/zeplington.jpg" width="25" height="25">Zeplington</button>
+
+                    </div>
+                 </aside>
+
+                 <div id="ForeverContainer" class="MainDivs">
+                    <header>
+                        <!--Video type navigation-->
+                        <div class="btn-group">
+                            <button class="button">Latest</button>
+                            <button class="button">Server</button>
+                            <button class="button">Skyblock</button>
+                        </div>
+                    </header>
+                    <!--Videos contained in here - INSERT YT API?-->
+                </div>
+            </main>
+        </div>
+        <div class="row" style="padding: 10px">
+            <div id="FooterContainer" class="MainDivs">
+                <center>
+                    <span>
+                        <!-- Place privacy policy or other readables here-->
+                        <a href="/privacy">Privacy Policy</a>
+                    </span>
+                    <hr>
+                    <span>
+                        Website written and maintained by 
+                        <a href="/Deathdealer">Deathdealer</a>
+                    </span>
+                </center>
+            </div>
+        </div>
     </div>
+    
     <script src="js/youtube.js"></script>
 </body>
 </html>
