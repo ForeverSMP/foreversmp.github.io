@@ -92,10 +92,10 @@ const members = [
 // ====================================================================
 
 // Maximum number of uploads requested per YouTube playlist page.
-const videosToFetch = 50;
+const videosToFetch = 1000;
 
 // Number of qualifying long-form videos to cache per creator.
-const videosPerChannel = 10;
+const videosPerChannel = 100;
 
 // Videos this length or shorter are treated as Shorts.
 const shortsMaxDuration = 180;

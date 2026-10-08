@@ -3,7 +3,7 @@
 // ====================================================================
 
 // Determines how many videos appear in the combined homepage feed.
-const videosToShow = 25;
+const videosToShow = 100;
 
 
 // ====================================================================
